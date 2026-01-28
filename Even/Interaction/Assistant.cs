@@ -159,18 +159,8 @@ public class Assistant : MonoBehaviour
             {
                 Logger.Error($"Command '{command.Name}' threw: {ex}");
             }
-
-            var nowUtc = DateTime.UtcNow;
-            var startUtc = phraseStartTime.Kind == DateTimeKind.Utc
-                ? phraseStartTime
-                : phraseStartTime.ToUniversalTime();
-
-            var latencySeconds = (float)(nowUtc - startUtc).TotalSeconds;
-            if (latencySeconds < 0f) latencySeconds = 0f;
-
-            var phraseTimeInUnity = Time.time - latencySeconds;
-            _awakeUntilTime = phraseTimeInUnity + AwakeWindow;
-
+            
+            _awakeUntilTime = Time.time + AwakeWindow;
             _cooldownUntilTime = Time.time + CommandCooldownSeconds;
             _state = AssistantState.Cooldown;
 
