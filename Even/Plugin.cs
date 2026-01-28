@@ -33,6 +33,7 @@ public class Plugin : BaseUnityPlugin
     
     private static readonly string[] WakeAliases = [
         "hey even",
+        "hey jarvis",
         "yo even"
     ];
     
@@ -116,7 +117,7 @@ public class Plugin : BaseUnityPlugin
             await Network.Instance.FetchServerDataAsync(Version, Mod);
             
             _hasInitialized = true;
-            Utils.Logger.Info("Initialized successfully");
+            Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
         }
         catch (Exception ex)
         {
