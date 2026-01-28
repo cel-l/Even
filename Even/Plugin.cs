@@ -5,10 +5,12 @@ using System.Linq;
 using System.Reflection;
 using BepInEx;
 using Even.Commands;
+using Even.Commands.Runtime;
 using Even.Interaction;
 using Even.Utils;
 using UnityEngine;
 using Input = Even.Interaction.Input;
+
 namespace Even;
 
 [BepInPlugin("cel.even", Mod, Version)]
@@ -23,6 +25,10 @@ public class Plugin : BaseUnityPlugin
     private Voice _voice;
     private Input _input;
     private Assistant _wakeWordAssistant;
+    private Models.Callbacks.Photon _photon;
+
+    private PlayerCommandRegistry _playerCommands;
+
     private bool _hasInitialized;
 
     private List<Command> _commands;
@@ -30,13 +36,14 @@ public class Plugin : BaseUnityPlugin
     private bool _rebuildQueued;
     private float _rebuildAt;
     private const float RebuildDebounceSeconds = 0.25f;
-    
-    private static readonly string[] WakeAliases = [
+
+    private static readonly string[] WakeAliases =
+    [
         "hey even",
         "hey jarvis",
         "yo even"
     ];
-    
+
     private void Awake()
     {
         InstallEmbeddedAssemblyResolver();
@@ -109,13 +116,18 @@ public class Plugin : BaseUnityPlugin
             _voice = gameObject.AddComponent<Voice>();
             _input = gameObject.AddComponent<Input>();
 
+            _playerCommands = new PlayerCommandRegistry();
+
+            _photon = gameObject.AddComponent<Models.Callbacks.Photon>();
+            _photon.Initialize(_playerCommands);
+
             _voice.Initialize(WakeAliases);
 
             _wakeWordAssistant = gameObject.AddComponent<Assistant>();
             _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
 
             await Network.Instance.FetchServerDataAsync(Version, Mod);
-            
+
             _hasInitialized = true;
             Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
         }

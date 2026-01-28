@@ -75,7 +75,17 @@ public static class Rig
             return null;
         }
     }
-
+    
+    public static string ColoredName(NetPlayer player)
+    {
+        var playerRig = FromPlayer(player);
+        if (playerRig == null) return player.NickName;
+        
+        var playerColor = playerRig.playerColor;
+        var hexColor = ColorUtility.ToHtmlStringRGB(playerColor);
+        return $"<color=#{hexColor}>{player.SanitizedNickName}</color>";
+    }
+    
     public static VRRig RandomRig(bool includeSelf)
     {
         try
