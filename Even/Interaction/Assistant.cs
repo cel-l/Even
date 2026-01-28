@@ -6,7 +6,6 @@ using Even.Utils;
 using MonkeNotificationLib;
 using Logger = Even.Utils.Logger;
 using UnityEngine;
-
 namespace Even.Interaction;
 
 public class Assistant : MonoBehaviour
@@ -38,9 +37,11 @@ public class Assistant : MonoBehaviour
     private readonly string[] _wakeMessages =
     [
         "How can I help?",
-        "I'm here!",
+        "Hey there!",
         "What's up?"
     ];
+
+    private bool _hasInitialized;
 
     public void Initialize(Voice voice, List<Command> commands, IEnumerable<string> wakeKeywords)
     {
@@ -66,8 +67,46 @@ public class Assistant : MonoBehaviour
         _voice.PhraseRecognized -= OnPhraseRecognized;
         _voice.PhraseRecognizedWithStartTime -= OnPhraseRecognizedWithStartTime;
         _voice.PhraseRecognizedWithStartTime += OnPhraseRecognizedWithStartTime;
+        
+        if (!_hasInitialized)
+        {
+            _hasInitialized = true;
+            GoToSleep();
+        }
+    }
+    
+    public void RefreshCommands(List<Command> commands)
+    {
+        if (commands == null)
+        {
+            Logger.Warning("Assistant.RefreshCommands called with null commands (ignored)");
+            return;
+        }
 
-        GoToSleep();
+        _commands = commands;
+
+        if (_voice == null)
+        {
+            Logger.Warning("Assistant.RefreshCommands: Voice is null (ignored)");
+            return;
+        }
+
+        if (_state == AssistantState.Listening ||
+            _state == AssistantState.Awake ||
+            _state == AssistantState.ExecutingCommand ||
+            _state == AssistantState.Cooldown)
+        {
+            var commandKeywords = Command.GetAllKeywords(_commands);
+            _voice.StartListening(commandKeywords);
+            
+            if (_state != AssistantState.ExecutingCommand)
+                _state = AssistantState.Listening;
+
+            Logger.Info($"Assistant refreshed commands while active. Keywords: {commandKeywords?.Length ?? 0}");
+            return;
+        }
+        
+        Logger.Info("Assistant refreshed commands while sleeping (no recognizer/state change until wake)");
     }
 
     private void SetWakeKeywords(IEnumerable<string> wakeKeywords)
@@ -152,7 +191,7 @@ public class Assistant : MonoBehaviour
             {
                 Logger.Error($"Command '{command.Name}' threw: {ex}");
             }
-            
+
             _awakeUntilTime = Time.time + AwakeWindow;
             _cooldownUntilTime = Time.time + CommandCooldownSeconds;
             _state = AssistantState.Cooldown;

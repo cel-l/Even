@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using HarmonyLib;
+using GorillaNetworking;
 using Photon.Pun;
 using UnityEngine;
 using Logger = Even.Utils.Logger;
@@ -86,7 +86,43 @@ public static class Rig
         return $"<color=#{hexColor}>{player.SanitizedNickName}</color>";
     }
     
-    public static VRRig RandomRig(bool includeSelf)
+    public static string ConvertColor(float color)
+    {
+        return ((int)(color * 9f)).ToString();
+    }
+    
+    public static string GetColorCode(VRRig rig)
+    {
+        if (rig == null) return null;
+        
+        var playerColor = rig.playerColor;
+        var str = "";
+        str = ConvertColor(playerColor.r) + " " + ConvertColor(playerColor.g) + " " + ConvertColor(playerColor.b);
+        return str;
+    }
+    
+    public static void SetColorCode(int red, int green, int blue)
+    {
+        var redValue = Mathf.Clamp01(red / 9f);
+        var greenValue = Mathf.Clamp01(green / 9f);
+        var blueValue = Mathf.Clamp01(blue / 9f);
+
+        PlayerPrefs.SetFloat("redValue", redValue);
+        PlayerPrefs.SetFloat("greenValue", greenValue);
+        PlayerPrefs.SetFloat("blueValue", blueValue);
+
+        GorillaTagger.Instance.UpdateColor(redValue, greenValue, blueValue);
+        GorillaComputer.instance.UpdateColor(redValue, greenValue, blueValue);
+
+        PlayerPrefs.Save();
+
+        if (NetworkSystem.Instance.InRoom)
+        {
+            GorillaTagger.Instance.myVRRig.SendRPC("RPC_InitializeNoobMaterial", RpcTarget.All, redValue, greenValue, blueValue);
+        }
+    }
+    
+    public static VRRig Random(bool includeSelf)
     {
         try
         {
@@ -104,7 +140,7 @@ public static class Rig
         }
     }
 
-    public static VRRig ClosestToSelf()
+    public static VRRig Closest()
     {
         VRRig closest = null;
         var minDistance = float.MaxValue;
@@ -112,7 +148,7 @@ public static class Rig
         try
         {
             var self = GorillaTagger.Instance?.offlineVRRig;
-            Transform selfTransform = GorillaTagger.Instance?.bodyCollider?.transform;
+            var selfTransform = GorillaTagger.Instance?.bodyCollider?.transform;
 
             if (self == null || selfTransform == null || GorillaParent.instance == null)
                 return null;
@@ -134,24 +170,6 @@ public static class Rig
         catch (Exception ex)
         {
             Logger.Error($"Error getting closest VRRig: {ex.Message}");
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// I will NOT be using an assembly publicizer
-    /// </summary>
-    public static string GetRawCosmeticString(VRRig rig)
-    {
-        if (rig == null)
-            return null;
-
-        try
-        {
-            return Traverse.Create(rig).Field("rawCosmeticString").GetValue<string>();
-        }
-        catch
-        {
             return null;
         }
     }

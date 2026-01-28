@@ -105,12 +105,12 @@ public static class Audio
                 RpcTarget.All,
                 soundId,
                 false,
-                0.4f
+                0.8f
             );
         }
         else
         {
-            VRRig.LocalRig.PlayHandTapLocal(soundId, false, 0.4f);
+            VRRig.LocalRig.PlayHandTapLocal(soundId, false, 0.8f);
         }
     }
 }

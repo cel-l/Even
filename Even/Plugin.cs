@@ -10,7 +10,6 @@ using Even.Interaction;
 using Even.Utils;
 using UnityEngine;
 using Input = Even.Interaction.Input;
-
 namespace Even;
 
 [BepInPlugin("cel.even", Mod, Version)]
@@ -158,17 +157,18 @@ public class Plugin : BaseUnityPlugin
         try
         {
             _commands = Command.CreateAll();
-
+            
             if (_wakeWordAssistant)
             {
-                Destroy(_wakeWordAssistant);
-                _wakeWordAssistant = null;
+                _wakeWordAssistant.RefreshCommands(_commands);
+            }
+            else
+            {
+                _wakeWordAssistant = gameObject.AddComponent<Assistant>();
+                _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
             }
 
-            _wakeWordAssistant = gameObject.AddComponent<Assistant>();
-            _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
-
-            Utils.Logger.Info($"Rebuilt commands + recognizer. Command count: {_commands?.Count ?? 0}");
+            Utils.Logger.Info($"Rebuilt commands. Command count: {_commands?.Count ?? 0}");
         }
         catch (Exception ex)
         {

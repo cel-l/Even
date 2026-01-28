@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Even.Commands.Default.Utility;
 using Even.Commands.Helpers;
 using Even.Utils;
 using GorillaNetworking;
@@ -98,8 +97,7 @@ public sealed class OwnedCosmetics : IEvenCommand
             action: () =>
             {
                 Audio.PlayPopSound();
-
-                Cosmetic.EquipCosmeticFromCosmeticDisplayName(displayName);
+                Cosmetic.EquipFromDisplayName(displayName);
 
                 var cosmeticSet = GorillaTagger.Instance.offlineVRRig.cosmeticSet;
                 var isWearing = cosmeticSet.items.Any(c =>
@@ -179,7 +177,7 @@ public sealed class TakeOffCosmetics : IEvenCommand
             action: () =>
             {
                 Audio.PlayPopSound();
-                MicMode.Set("OPEN MIC");
+                Cosmetic.RemoveCosmeticsFromSet();
             },
             keywords: ["take off cosmetics", "get naked"]
         );
@@ -208,10 +206,11 @@ public sealed class RandomizeCosmetics : IEvenCommand
                     CosmeticsController.CosmeticCategory.Fur
                 };
 
+                Audio.PlayPopSound();
+                Cosmetic.RemoveCosmeticsFromSet();
+                
                 foreach (var category in categories)
                     Cosmetic.PickAndWearRandomCosmeticFromType(category);
-
-                Audio.PlayPopSound();
             },
             keywords: ["randomize outfit", "random fit", "new fit"]
         );

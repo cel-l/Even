@@ -11,20 +11,7 @@ public static class Cosmetic
     private static readonly Random Random = new();
     public static List<string> cosmeticList { get; private set; }
     
-    public static void EquipCosmeticFromCosmeticDisplayName(string cosmeticDisplayName)
-    {
-        if (string.IsNullOrWhiteSpace(cosmeticDisplayName))
-            return;
-
-        var cosmeticCodeName = instance.GetItemNameFromDisplayName(cosmeticDisplayName);
-        instance.PressWardrobeItemButton(
-            instance.GetItemFromDict(cosmeticCodeName),
-            false,
-            false
-        );
-    }
-
-    public static string GetCosmeticFromDisplayName(string cosmeticDisplayName)
+    public static string FromDisplayName(string cosmeticDisplayName)
     {
         if (string.IsNullOrWhiteSpace(cosmeticDisplayName))
             return null;
@@ -39,8 +26,21 @@ public static class Cosmetic
             return null;
         }
     }
+    
+    public static void EquipFromDisplayName(string cosmeticDisplayName)
+    {
+        if (string.IsNullOrWhiteSpace(cosmeticDisplayName))
+            return;
 
-    public static List<string> GetCosmeticsDisplayNames()
+        var cosmeticCodeName = instance.GetItemNameFromDisplayName(cosmeticDisplayName);
+        instance.PressWardrobeItemButton(
+            instance.GetItemFromDict(cosmeticCodeName),
+            false,
+            false
+        );
+    }
+
+    public static List<string> DisplayNames()
     {
         var displayNames = new List<string>();
 
@@ -65,7 +65,7 @@ public static class Cosmetic
         }
         catch (Exception ex)
         {
-            Logger.Error($"[Even] Error getting cosmetic display names: {ex.Message}");
+            Logger.Error($"Error getting cosmetic display names: {ex.Message}");
         }
 
         return displayNames;
@@ -117,8 +117,8 @@ public static class Cosmetic
                 return;
             }
 
-            string chosenCosmeticId = available[Random.Next(available.Count)];
-            EquipCosmeticFromCosmeticDisplayName(GetDisplayNameFromCosmetic(chosenCosmeticId));
+            var chosenCosmeticId = available[Random.Next(available.Count)];
+            EquipFromDisplayName(GetDisplayNameFromCosmetic(chosenCosmeticId));
         }
         catch (Exception ex)
         {
@@ -139,7 +139,7 @@ public static class Cosmetic
     {
         var cosmeticsController = CosmeticsController.instance;
 
-        for (int i = 0; i < cosmeticsController.currentWornSet.items.Length; i++)
+        for (var i = 0; i < cosmeticsController.currentWornSet.items.Length; i++)
         {
             cosmeticsController.currentWornSet.items[i] = cosmeticsController.nullItem;
         }
