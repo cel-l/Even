@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Even.Utils;
 using GorillaNetworking;
 using GorillaTagScripts;
 using Photon.Pun;
@@ -26,7 +27,8 @@ public sealed class LobbyHop : IEvenCommand
 
                     var trigger = PhotonNetworkController.Instance.currentJoinTrigger
                                   ?? GorillaComputer.instance.GetJoinTriggerForZone("forest");
-
+                    
+                    Notification.Show($"Left current room, trying to find new room", 0.6f, false, true);
                     PhotonNetworkController.Instance.AttemptToJoinPublicRoom(
                         trigger,
                         FriendshipGroupDetection.Instance.IsInParty ? JoinType.JoinWithParty : JoinType.Solo

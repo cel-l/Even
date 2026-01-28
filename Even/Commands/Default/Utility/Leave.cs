@@ -1,4 +1,5 @@
 ﻿using System;
+using Even.Utils;
 using Logger = Even.Utils.Logger;
 namespace Even.Commands.Default.Utility;
 
@@ -14,7 +15,12 @@ public sealed class Leave : IEvenCommand
             {
                 try
                 {
+                    if (!NetworkSystem.Instance.InRoom) return;
+                    
                     await NetworkSystem.Instance.ReturnToSinglePlayer();
+                    
+                    Notification.Show("Disconnected from room successfully", 0.6f, false, true);
+                    Audio.PlaySound("success.wav", 1.3f);
                 }
                 catch (Exception e)
                 {

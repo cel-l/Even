@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Even.Utils;
 using GorillaNetworking;
 using GorillaTagScripts;
 using Logger = Even.Utils.Logger;
@@ -21,7 +22,9 @@ public sealed class Rejoin : IEvenCommand
                     
                     var currentRoomName = NetworkSystem.Instance.RoomName;
                     var joinType = FriendshipGroupDetection.Instance.IsInParty ? JoinType.JoinWithParty : JoinType.Solo;
-                        
+                    
+                    Notification.Show($"Trying to rejoin room {currentRoomName}", 0.6f, false, true);
+                    
                     await NetworkSystem.Instance.ReturnToSinglePlayer();
                     await Task.Delay(300);
                         

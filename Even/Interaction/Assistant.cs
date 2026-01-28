@@ -124,19 +124,12 @@ public class Assistant : MonoBehaviour
         {
             if (IsWakeWord(text))
                 WakeUp();
-
             return;
         }
 
-        if (_state == AssistantState.ExecutingCommand)
+        if (_state == AssistantState.ExecutingCommand || _state == AssistantState.Cooldown)
         {
-            Logger.Info($"Ignoring phrase while executing: '{text}'");
-            return;
-        }
-
-        if (_state == AssistantState.Cooldown)
-        {
-            Logger.Info($"Ignoring phrase during cooldown: '{text}'");
+            Logger.Info($"Ignoring phrase in state {_state}: '{text}'");
             return;
         }
 
