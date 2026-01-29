@@ -12,7 +12,7 @@ public sealed class Sleep : IEvenCommand
             name: "sleep",
             category: "Utility",
             description: "Makes Even stop listening",
-            action: async void () =>
+            action: void () =>
             {
                 try
                 {

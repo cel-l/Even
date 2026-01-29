@@ -97,7 +97,7 @@ public class Plugin : BaseUnityPlugin
             }
         };
     }
-
+    
     private void Start()
     {
         Notification.Show($"Loading...", 6f);
