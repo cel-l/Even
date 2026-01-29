@@ -99,7 +99,7 @@ public class Plugin : BaseUnityPlugin
 
     private void Start()
     {
-        Notification.Show($"Loading...", 1.6f);
+        Notification.Show($"Loading...", 6f);
         if (CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 == null)
             CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 += Initialize;
         else

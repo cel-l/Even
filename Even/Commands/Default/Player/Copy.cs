@@ -16,7 +16,7 @@ public sealed class Copy : IEvenCommand
 
         await Task.Delay(300);
 
-        string colorCode = Rig.GetColorCode(rig);
+        var colorCode = Rig.GetColorCode(rig);
         if (!string.IsNullOrEmpty(colorCode))
         {
             string[] colorParts = colorCode.Split(' ');
@@ -69,14 +69,13 @@ public sealed class Copy : IEvenCommand
         if (player == null)
             return;
 
-        foreach (var line in GorillaScoreboardTotalUpdater.allScoreboardLines)
-        {
-            if (line.linePlayer != (NetPlayer)player) continue;
-            
-            line.PressButton(true, GorillaPlayerLineButton.ButtonType.Mute);
-            break;
-        }
+        var rig = Rig.FromPlayer(player);
+        if (rig == null)
+            return;
         
+        _ = CopyOutfitFromVRRig(rig);
+        
+        Audio.PlayPopSound();
         Notification.Show($"Copied {Rig.ColoredName(player)}");
     }
 }
