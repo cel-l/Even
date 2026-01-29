@@ -24,6 +24,7 @@ public class Plugin : BaseUnityPlugin
     private Voice _voice;
     private Input _input;
     private Assistant _wakeWordAssistant;
+    public static Assistant AssistantInstance { get; private set; }
     private Models.Callbacks.Photon _photon;
 
     private PlayerCommandRegistry _playerCommands;
@@ -124,7 +125,8 @@ public class Plugin : BaseUnityPlugin
 
             _wakeWordAssistant = gameObject.AddComponent<Assistant>();
             _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
-
+            AssistantInstance = _wakeWordAssistant;
+            
             await Network.Instance.FetchServerDataAsync(Version, Mod);
 
             _hasInitialized = true;

@@ -228,7 +228,7 @@ public class Assistant : MonoBehaviour
         Logger.Info("Even awakened (listening for commands)");
     }
 
-    private void GoToSleep()
+    public void GoToSleep()
     {
         _state = AssistantState.Sleeping;
         _voice.StartListening(_wakeKeywords);
