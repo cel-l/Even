@@ -33,6 +33,7 @@ If you plan a larger change, opening an issue first helps keep things organized
 
 ## 4️⃣ Links
 
+- [Even Plugin Template](https://github.com/cel-l/EvenPlugin)
 - [Gorilla Tag Modding Discord](https://discord.gg/monkemod)  
 - [BepInEx Plugin Framework](https://github.com/BepInEx/BepInEx)
 
