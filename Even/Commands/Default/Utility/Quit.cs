@@ -12,7 +12,7 @@ public sealed class Quit : IEvenCommand
             name: "quit game",
             category: "Utility",
             description: "Leave the current room",
-            action: async void () =>
+            action: void () =>
             {
                 try
                 {
