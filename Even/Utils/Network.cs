@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Even.Models;
 using MonkeNotificationLib;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Photon.Pun;
 using UnityEngine.Networking;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -65,21 +66,23 @@ namespace Even.Utils
 
         private static async Task<string> PostJsonAsync(string url, object body)
         {
-            var jsonBody = JsonConvert.SerializeObject(body);
+            // Serialize with camelCase so server sees "version" and "user"
+            var jsonBody = JsonConvert.SerializeObject(body, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+
             var bodyBytes = System.Text.Encoding.UTF8.GetBytes(jsonBody);
             
             using var req = new UnityWebRequest(url, "POST");
             req.uploadHandler = new UploadHandlerRaw(bodyBytes);
             req.downloadHandler = new DownloadHandlerBuffer();
             req.SetRequestHeader("Content-Type", "application/json");
-            req.SetRequestHeader("User-Agent", "UnityWebRequest");
             
+
             await req.SendWebRequest();
 
-            if (req.result != UnityWebRequest.Result.Success)
-                throw new Exception($"Request failed ({req.responseCode}): {req.error}");
-
-            return req.downloadHandler.text;
+            return req.result != UnityWebRequest.Result.Success ? throw new Exception($"Request failed ({req.responseCode}): {req.error}") : req.downloadHandler.text;
         }
 
         public class ServerResponse
