@@ -9,11 +9,12 @@ internal static class MicMode
 {
     internal static void Set(string mode)
     {
+        Audio.PlaySound("success.wav", 0.74f);
+        Notification.Show($"Changed mic mode to {char.ToUpper(mode[0]) + mode[1..].ToLower()}");
+        
         GorillaComputer.instance.pttType = mode;
         PlayerPrefs.SetString("pttType", GorillaComputer.instance.pttType);
         PlayerPrefs.Save();
-        
-        Audio.PlaySound("success", 0.74f);
     }
 }
 

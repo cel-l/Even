@@ -9,10 +9,12 @@ internal static class QueueMode
 {
     internal static void Set(string queue)
     {
-        GorillaComputer.instance.currentQueue = queue;
-        PlayerPrefs.Save();
         
         Audio.PlaySound("success", 0.74f);
+        Notification.Show($"Changed queue to {char.ToUpper(queue[0]) + queue[1..].ToLower()}");
+        
+        GorillaComputer.instance.currentQueue = queue;
+        PlayerPrefs.Save();
     }
 }
 

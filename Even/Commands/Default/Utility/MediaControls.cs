@@ -1,5 +1,6 @@
 ﻿using System;
 using Even.Commands.Helpers;
+using Even.Utils;
 using Logger = Even.Utils.Logger;
 namespace Even.Commands.Default.Utility;
 
@@ -16,6 +17,7 @@ public sealed class PlayPauseCommand : IEvenCommand
                 try
                 {
                     Multimedia.PlayPause();
+                    Audio.PlaySound("success.wav", 0.74f);
                 }
                 catch (Exception e)
                 {
@@ -40,6 +42,7 @@ public sealed class NextTrackCommand : IEvenCommand
                 try
                 {
                     Multimedia.NextTrack();
+                    Audio.PlaySound("success.wav", 0.74f);
                 }
                 catch (Exception e)
                 {
@@ -64,6 +67,7 @@ public sealed class PreviousTrackCommand : IEvenCommand
                 try
                 {
                     Multimedia.PreviousTrack();
+                    Audio.PlaySound("success.wav", 0.74f);
                 }
                 catch (Exception e)
                 {
