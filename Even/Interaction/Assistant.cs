@@ -233,7 +233,7 @@ public class Assistant : MonoBehaviour
         _state = AssistantState.Sleeping;
         _voice.StartListening(_wakeKeywords);
 
-        Audio.PlaySound("sleep.wav", 2f);
+        Audio.PlaySound("notification.wav", 1.6f);
         Logger.Info("Even asleep (listening for wake word)");
     }
 }

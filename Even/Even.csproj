@@ -282,7 +282,6 @@
     <ItemGroup>
       <None Remove="Assets\References\MonkeNotificationLib.dll" />
       <EmbeddedResource Include="Assets\References\MonkeNotificationLib.dll" />
-      <None Remove="Assets\Resources\Sounds\notification.wav" />
       <None Remove="Assets\Resources\Sounds\sleep.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\sleep.wav" />
       <None Remove="Assets\Resources\Sounds\success.wav" />
@@ -292,5 +291,7 @@
       <None Remove="Assets\Resources\Sounds\wake.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\wake.wav" />
       <None Remove="Assets\Resources\Sounds\alert.wav" />
+      <None Remove="Assets\Resources\Sounds\notification.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\notification.wav" />
     </ItemGroup>
 </Project>

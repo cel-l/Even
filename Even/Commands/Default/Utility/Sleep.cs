@@ -17,7 +17,7 @@ public sealed class Sleep : IEvenCommand
                 try
                 {
                     Notification.Show("Going to sleep...", 0.6f, false, true);
-                    Audio.PlaySound("success.wav", 1.3f);
+                    Audio.PlaySound("success.wav", 0.74f);
 
                     if (!Plugin.AssistantInstance)
                     {

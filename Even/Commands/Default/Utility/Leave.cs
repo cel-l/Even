@@ -19,8 +19,8 @@ public sealed class Leave : IEvenCommand
                     
                     await NetworkSystem.Instance.ReturnToSinglePlayer();
                     
-                    Notification.Show("Disconnected from room successfully", 0.6f, false, true);
-                    Audio.PlaySound("success.wav", 1.3f);
+                    Notification.Show("Disconnected from room", 0.6f, false, true);
+                    Audio.PlaySound("success.wav", 0.74f);
                 }
                 catch (Exception e)
                 {
