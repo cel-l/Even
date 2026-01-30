@@ -9,7 +9,7 @@ public sealed class TimeCommand : IEvenCommand
     {
         return new Command(
             name: "what time is it",
-            category: "Utility",
+            category: "Miscellaneous",
             description: "Tells the current time",
             action: () =>
             {
@@ -34,7 +34,7 @@ public sealed class DateCommand : IEvenCommand
     {
         return new Command(
             name: "what's the date",
-            category: "Utility",
+            category: "Miscellaneous",
             description: "Tells today's date",
             action: () =>
             {
