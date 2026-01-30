@@ -49,6 +49,7 @@ public class Plugin : BaseUnityPlugin
         InstallEmbeddedAssemblyResolver();
 
         CommandAPI.RegistryChanged += OnCommandRegistryChanged;
+        Settings.Initialize();
     }
 
     private void OnDestroy()
@@ -106,7 +107,7 @@ public class Plugin : BaseUnityPlugin
         else
             Initialize();
     }
-
+    
     private async void Initialize()
     {
         try
@@ -152,6 +153,8 @@ public class Plugin : BaseUnityPlugin
         {
             Utils.Logger.Info("left joystick clicked");
         }
+        
+        Settings.Tick();
     }
 
     private void RebuildCommandsAndRecognizer()
