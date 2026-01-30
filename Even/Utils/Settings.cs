@@ -5,7 +5,6 @@ using System.Linq;
 using BepInEx;
 using Newtonsoft.Json;
 using UnityEngine;
-
 namespace Even.Utils;
 
 public static class Settings
@@ -19,6 +18,11 @@ public static class Settings
     private static bool _dirty;
     private static float _saveAt;
     private const float SaveDebounceSeconds = 0.5f;
+
+    private static readonly Dictionary<string, bool> BuiltInDefaults = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [Keys.Notifications] = true
+    };
     
     public static void Initialize(string folderName = "Even", string fileName = "settings.json")
     {
@@ -31,10 +35,7 @@ public static class Settings
         FilePath = Path.Combine(dir, fileName);
         LoadOrCreate();
     }
-
-    /// <summary>
-    /// Call from Plugin.Update to auto-save changes with debounce
-    /// </summary>
+    
     public static void Tick()
     {
         if (!_dirty) return;
@@ -43,7 +44,7 @@ public static class Settings
     }
 
     /// <summary>
-    /// Mutate settings and optionally save immediately
+    /// Safely update settings and queue save
     /// </summary>
     public static void Update(Action<Data> mutator, bool saveImmediately = false)
     {
@@ -56,7 +57,7 @@ public static class Settings
     }
 
     /// <summary>
-    /// Load settings from disk or create defaults
+    /// Load settings from disk or create defaults if missing
     /// </summary>
     public static void LoadOrCreate()
     {
@@ -72,6 +73,7 @@ public static class Settings
         {
             var json = File.ReadAllText(FilePath);
             Current = JsonConvert.DeserializeObject<Data>(json) ?? new Data();
+            MergeDefaults();
             Current.Normalize();
             Changed?.Invoke(Current);
         }
@@ -112,6 +114,9 @@ public static class Settings
             return defaultValue;
 
         key = NormalizeKey(key);
+        if (BuiltInDefaults.TryGetValue(key, out var builtInDefault))
+            defaultValue = builtInDefault;
+
         return Current.Flags.GetValueOrDefault(key, defaultValue);
     }
 
@@ -124,7 +129,6 @@ public static class Settings
             return;
 
         key = NormalizeKey(key);
-
         Update(s => s.Flags[key] = enabled, saveImmediately);
     }
 
@@ -141,10 +145,19 @@ public static class Settings
     private static void CreateDefaults()
     {
         Current = new Data();
-        Current.Normalize();
+        MergeDefaults();
         MarkDirty();
         Changed?.Invoke(Current);
         SaveNow();
+    }
+
+    private static void MergeDefaults()
+    {
+        foreach (var kv in BuiltInDefaults)
+        {
+            if (!Current.Flags.ContainsKey(kv.Key))
+                Current.Flags[kv.Key] = kv.Value;
+        }
     }
 
     private static void MarkDirty()
@@ -177,17 +190,18 @@ public static class Settings
         /// <summary>
         /// Generic feature flags
         /// </summary>
-        public Dictionary<string, bool> Flags { get; set; } =
-            new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, bool> Flags { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
         public void Normalize()
         {
             Flags ??= new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
             Flags = Flags
                 .Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
-                .ToDictionary(kv => kv.Key.Trim().Replace(" ", "_").ToLowerInvariant(),
-                              kv => kv.Value,
-                              StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(
+                    kv => kv.Key.Trim().Replace(" ", "_").ToLowerInvariant(),
+                    kv => kv.Value,
+                    StringComparer.OrdinalIgnoreCase
+                );
         }
     }
 
