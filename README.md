@@ -6,7 +6,7 @@
 
 **Even** is a voice controlled assistant mod for Gorilla Tag that uses voice commands for seamless, intuitive control of the game
 
-It comes equipped with many features, and a custom plugin template allowing mod developers to implement their own commands into Even natively
+It comes equipped with many features including a custom plugin template allowing mod developers to implement their own commands into Even natively
 
 ---
 
