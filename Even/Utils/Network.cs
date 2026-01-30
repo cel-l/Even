@@ -6,85 +6,94 @@ using Newtonsoft.Json;
 using Photon.Pun;
 using UnityEngine.Networking;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
-namespace Even.Utils;
 
-public sealed class Network
+namespace Even.Utils
 {
-    public static Network Instance { get; } = new();
-    private Network() { }
-
-    public async Task<int> FetchServerDataAsync(string version, string modName)
+    public sealed class Network
     {
-        if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(modName))
-        {
-            Logger.Error("Version or modName is empty");
-            return 0;
-        }
+        public static Network Instance { get; } = new();
+        private Network() { }
 
-        try
+        public async Task<int> FetchServerDataAsync(string version, string user)
         {
-            var url = $"{Config.DataUrl}?version={UnityWebRequest.EscapeURL(version)}&mod={UnityWebRequest.EscapeURL(modName)}&user={NetworkSystem.Instance.LocalPlayer.UserId}";
-            var json = await GetTextAsync(url);
-            if (string.IsNullOrWhiteSpace(json))
+            if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(user))
             {
-                Logger.Error("Empty server response");
+                Logger.Error("Version or user is empty");
                 return 0;
             }
 
-            var data = JsonConvert.DeserializeObject<ServerResponse>(json);
-            if (data == null)
+            try
             {
-                Logger.Error("Failed to deserialize server response");
+                var requestBody = new { version, user };
+                var json = await PostJsonAsync(Config.DataUrl, requestBody);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    Logger.Error("Empty server response");
+                    return 0;
+                }
+
+                var data = JsonConvert.DeserializeObject<ServerResponse>(json);
+                if (data == null)
+                {
+                    Logger.Error("Failed to deserialize server response");
+                    return 0;
+                }
+
+                if (data.VersionCheck != null)
+                {
+                    var check = data.VersionCheck;
+                    if (check.Outdated)
+                        NotificationController.AppendMessage(Plugin.Alias, $"Mod is outdated! Latest: {check.LatestVersion}", false, 20f);
+
+                    Logger.Info(check.Outdated ? $"Version outdated: {check.Message}" : $"Version check: {check.Message}");
+                }
+
+                if (string.IsNullOrWhiteSpace(data.CustomProperty) || PhotonNetwork.LocalPlayer == null) return 0;
+                PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable
+                {
+                    { data.CustomProperty.Trim(), true }
+                });
+
                 return 0;
             }
-
-            if (data.VersionCheck != null)
+            catch (Exception ex)
             {
-                var check = data.VersionCheck;
-                if (check.Outdated)
-                    NotificationController.AppendMessage(Plugin.Alias, $"Mod is outdated! Latest: {check.LatestVersion}", false, 20f);
-
-                Logger.Info(check.Outdated ? $"Version outdated: {check.Message}" : $"Version check: {check.Message}");
+                Logger.Error($"FetchServerDataAsync failed: {ex}");
+                return 0;
             }
-
-            if (string.IsNullOrWhiteSpace(data.CustomProperty) || PhotonNetwork.LocalPlayer == null) return 0;
-            PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable
-            {
-                { data.CustomProperty.Trim(), true }
-            });
-
-            return 0;
         }
-        catch (Exception ex)
+
+        private static async Task<string> PostJsonAsync(string url, object body)
         {
-            Logger.Error($"FetchServerDataAsync failed: {ex}");
-            return 0;
+            var jsonBody = JsonConvert.SerializeObject(body);
+            var bodyBytes = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+            
+            using var req = new UnityWebRequest(url, "POST");
+            req.uploadHandler = new UploadHandlerRaw(bodyBytes);
+            req.downloadHandler = new DownloadHandlerBuffer();
+            req.SetRequestHeader("Content-Type", "application/json");
+            req.SetRequestHeader("User-Agent", "UnityWebRequest");
+            
+            await req.SendWebRequest();
+
+            if (req.result != UnityWebRequest.Result.Success)
+                throw new Exception($"Request failed ({req.responseCode}): {req.error}");
+
+            return req.downloadHandler.text;
         }
-    }
 
-    private static async Task<string> GetTextAsync(string url)
-    {
-        using var req = UnityWebRequest.Get(url);
-        req.downloadHandler = new DownloadHandlerBuffer();
-        await req.SendWebRequest();
+        public class ServerResponse
+        {
+            [JsonProperty("custom_property")] public string CustomProperty { get; private set; } = "";
+            [JsonProperty("version_check")] public VersionCheckInfo VersionCheck { get; private set; }
+        }
 
-        if (req.result != UnityWebRequest.Result.Success)
-            throw new Exception($"Request failed ({req.responseCode}): {req.error}");
-
-        return req.downloadHandler.text;
-    }
-
-    public class ServerResponse
-    {
-        [JsonProperty("custom_property")] public string CustomProperty { get; private set; } = "";
-        [JsonProperty("version_check")] public VersionCheckInfo VersionCheck { get; private set; }
-    }
-
-    public class VersionCheckInfo
-    {
-        [JsonProperty("outdated")] public bool Outdated { get; private set; }
-        [JsonProperty("latest_version")] public string LatestVersion { get; private set; } = "";
-        [JsonProperty("current_version")] public string CurrentVersion { get; private set; } = "";
-        [JsonProperty("message")] public string Message { get; private set; } = "";
+        public class VersionCheckInfo
+        {
+            [JsonProperty("outdated")] public bool Outdated { get; private set; }
+            [JsonProperty("latest_version")] public string LatestVersion { get; private set; } = "";
+            [JsonProperty("current_version")] public string CurrentVersion { get; private set; } = "";
+            [JsonProperty("message")] public string Message { get; private set; } = "";
+        }
     }
 }
