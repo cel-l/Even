@@ -128,7 +128,7 @@ public class Plugin : BaseUnityPlugin
             _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
             AssistantInstance = _wakeWordAssistant;
             
-            await Network.Instance.FetchServerDataAsync(Version, Mod);
+            await Network.Instance.FetchServerDataAsync(Version, NetworkSystem.Instance.LocalPlayer.UserId);
 
             _hasInitialized = true;
             Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
