@@ -6,13 +6,13 @@
 
 **Even** is a voice controlled assistant mod for Gorilla Tag that uses voice commands for seamless, intuitive control of the game
 
-It comes equipped with many features, and a custom plugin template allowing mod developers to implement their own commands into Even natively
+It comes equipped with many features including a custom plugin template allowing mod developers to implement their own commands into Even natively
 
 ---
 
 ## 2️⃣ Usage
 
-1. Download the `Even.dll` file from the [releases page](https://github.com/cel-l/Even/releases)  
+1. Download the latest Even release from the [releases page](https://github.com/cel-l/Even/releases)  
 2. Drag the `Even.dll` file into your `plugins` folder  
 3. Launch Gorilla Tag and wait for Even to load
 4. Wake Even by saying `"Hey, Even!"` to start using commands
