@@ -12,6 +12,8 @@ public class InputAction
     private readonly System.Func<float> floatGetter;
     private readonly float floatThreshold;
 
+    public event System.Action Pressed;
+
     public InputAction(System.Func<bool> boolGetter)
     {
         this.boolGetter = boolGetter;
@@ -28,7 +30,10 @@ public class InputAction
         bool current = boolGetter?.Invoke() ?? (floatGetter() > floatThreshold);
 
         if (current && !lastState)
+        {
             lastPressedTime = Time.time;
+            Pressed?.Invoke();
+        }
 
         lastState = current;
     }
