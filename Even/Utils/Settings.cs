@@ -5,6 +5,7 @@ using System.Linq;
 using BepInEx;
 using Newtonsoft.Json;
 using UnityEngine;
+
 namespace Even.Utils;
 
 public static class Settings
@@ -21,9 +22,10 @@ public static class Settings
 
     private static readonly Dictionary<string, bool> BuiltInDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
-        [Keys.Notifications] = true
+        [Keys.Notifications] = true,
+        [Keys.QuickCommands] = true
     };
-    
+
     public static void Initialize(string folderName = "Even", string fileName = "settings.json")
     {
         if (IsInitialized) return;
@@ -35,7 +37,7 @@ public static class Settings
         FilePath = Path.Combine(dir, fileName);
         LoadOrCreate();
     }
-    
+
     public static void Tick()
     {
         if (!_dirty) return;
@@ -211,5 +213,6 @@ public static class Settings
     public static class Keys
     {
         public const string Notifications = "even_notifications";
+        public const string QuickCommands = "even_quick_commands";
     }
 }

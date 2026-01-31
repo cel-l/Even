@@ -6,6 +6,8 @@ using Even.Utils;
 using MonkeNotificationLib;
 using Logger = Even.Utils.Logger;
 using UnityEngine;
+using UnityEngine.Windows.Speech;
+
 namespace Even.Interaction;
 
 public class Assistant : MonoBehaviour
@@ -40,6 +42,11 @@ public class Assistant : MonoBehaviour
         "Hey there!",
         "What's up?"
     ];
+    
+    private const string QuickPrefix = "even";
+    private KeywordRecognizer _quickRecognizer;
+    private string[] _quickKeywords = [];
+    private bool _quickCommandsEnabledCached;
 
     private bool _hasInitialized;
 
@@ -67,14 +74,33 @@ public class Assistant : MonoBehaviour
         _voice.PhraseRecognized -= OnPhraseRecognized;
         _voice.PhraseRecognizedWithStartTime -= OnPhraseRecognizedWithStartTime;
         _voice.PhraseRecognizedWithStartTime += OnPhraseRecognizedWithStartTime;
+
+        if (_hasInitialized) return;
         
-        if (!_hasInitialized)
+        _hasInitialized = true;
+        GoToSleep();
+    }
+
+    public void ApplySettings()
+    {
+        var isEnabled = Settings.IsEnabled(Settings.Keys.QuickCommands, defaultValue: true);
+
+        if (isEnabled != _quickCommandsEnabledCached)
         {
-            _hasInitialized = true;
-            GoToSleep();
+            _quickCommandsEnabledCached = isEnabled;
+
+            if (isEnabled)
+                StartOrRestartQuickRecognizer();
+            else
+                StopQuickRecognizer();
+        }
+        else
+        {
+            if (isEnabled)
+                StartOrRestartQuickRecognizer();
         }
     }
-    
+
     public void RefreshCommands(List<Command> commands)
     {
         if (commands == null)
@@ -85,7 +111,7 @@ public class Assistant : MonoBehaviour
 
         _commands = commands;
 
-        if (_voice == null)
+        if (!_voice)
         {
             Logger.Warning("Assistant.RefreshCommands: Voice is null (ignored)");
             return;
@@ -98,15 +124,22 @@ public class Assistant : MonoBehaviour
         {
             var commandKeywords = Command.GetAllKeywords(_commands);
             _voice.StartListening(commandKeywords);
-            
+
             if (_state != AssistantState.ExecutingCommand)
                 _state = AssistantState.Listening;
 
             Logger.Info($"Assistant refreshed commands while active. Keywords: {commandKeywords?.Length ?? 0}");
+
+            if (_quickCommandsEnabledCached)
+                StartOrRestartQuickRecognizer();
+
             return;
         }
-        
+
         Logger.Info("Assistant refreshed commands while sleeping (no recognizer/state change until wake)");
+
+        if (_quickCommandsEnabledCached)
+            StartOrRestartQuickRecognizer();
     }
 
     private void SetWakeKeywords(IEnumerable<string> wakeKeywords)
@@ -150,6 +183,8 @@ public class Assistant : MonoBehaviour
             _voice.PhraseRecognized -= OnPhraseRecognized;
             _voice.PhraseRecognizedWithStartTime -= OnPhraseRecognizedWithStartTime;
         }
+
+        StopQuickRecognizer();
     }
 
     private void OnPhraseRecognized(string text) { }
@@ -180,27 +215,60 @@ public class Assistant : MonoBehaviour
 
         if (Command.TryFindByRecognizedText(_commands, text, out var command))
         {
-            _state = AssistantState.ExecutingCommand;
-            Logger.Info($"Executing command: {command.Name}");
-
-            try
-            {
-                command.Action?.Invoke();
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Command '{command.Name}' threw: {ex}");
-            }
-
-            _awakeUntilTime = Time.time + AwakeWindow;
-            _cooldownUntilTime = Time.time + CommandCooldownSeconds;
-            _state = AssistantState.Cooldown;
-
-            Logger.Info("Wake window reset after command execution (entering cooldown)");
+            ExecuteCommand(command);
             return;
         }
 
         Logger.Info($"Awake but no command matched: '{text}'");
+    }
+
+    private void OnQuickPhraseRecognized(PhraseRecognizedEventArgs args)
+    {
+        var text = args.text;
+        if (string.IsNullOrWhiteSpace(text))
+            return;
+
+        if (_state == AssistantState.ExecutingCommand || _state == AssistantState.Cooldown)
+            return;
+        
+        var normalized = NormalizeLoose(text);
+
+        const string prefix = QuickPrefix;
+        if (!normalized.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var remainder = normalized[(prefix.Length + 1)..].Trim();
+        if (string.IsNullOrWhiteSpace(remainder))
+            return;
+
+        if (!Command.TryFindByRecognizedText(_commands, remainder, out var command))
+        {
+            Logger.Info($"Quick command matched keyword '{text}', but remainder did not match a command: '{remainder}'");
+            return;
+        }
+
+        ExecuteCommand(command);
+    }
+
+    private void ExecuteCommand(Command command)
+    {
+        _state = AssistantState.ExecutingCommand;
+        Logger.Info($"Executing command: {command.Name}");
+
+        try
+        {
+            command.Action?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Command '{command.Name}' threw: {ex}");
+        }
+
+        _awakeUntilTime = Time.time + AwakeWindow;
+        _cooldownUntilTime = Time.time + CommandCooldownSeconds;
+        _state = AssistantState.Cooldown;
+
+        Logger.Info("Wake window reset after command execution (entering cooldown)");
     }
 
     private bool IsWakeWord(string text)
@@ -235,5 +303,107 @@ public class Assistant : MonoBehaviour
 
         Audio.PlaySound("notification.wav", 1.6f);
         Logger.Info("Even asleep (listening for wake word)");
+    }
+
+    private void StartOrRestartQuickRecognizer()
+    {
+        if (!_quickCommandsEnabledCached)
+        {
+            StopQuickRecognizer();
+            return;
+        }
+
+        var nextKeywords = BuildQuickKeywords();
+        if (nextKeywords.Length == 0)
+        {
+            StopQuickRecognizer();
+            return;
+        }
+        
+        if (_quickRecognizer != null && _quickRecognizer.IsRunning && SequenceEqualOrdinalIgnoreCase(_quickKeywords, nextKeywords))
+            return;
+
+        StopQuickRecognizer();
+
+        _quickKeywords = nextKeywords;
+
+        try
+        {
+            _quickRecognizer = new KeywordRecognizer(_quickKeywords, ConfidenceLevel.Low);
+            _quickRecognizer.OnPhraseRecognized += OnQuickPhraseRecognized;
+            _quickRecognizer.Start();
+
+            Logger.Info($"Quick commands recognizer started. Keywords: {_quickKeywords.Length}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to start quick commands recognizer: {ex}");
+            StopQuickRecognizer();
+        }
+    }
+
+    private void StopQuickRecognizer()
+    {
+        try
+        {
+            if (_quickRecognizer != null)
+                _quickRecognizer.OnPhraseRecognized -= OnQuickPhraseRecognized;
+
+            if (_quickRecognizer != null && _quickRecognizer.IsRunning)
+                _quickRecognizer.Stop();
+
+            _quickRecognizer?.Dispose();
+        }
+        catch
+        {
+            // ignored
+        }
+        finally
+        {
+            _quickRecognizer = null;
+            _quickKeywords = [];
+        }
+    }
+
+    private string[] BuildQuickKeywords()
+    {
+        if (_commands == null || _commands.Count == 0)
+            return [];
+
+        var raw = Command.GetAllKeywords(_commands);
+        
+        var result = raw
+            .Select(NormalizeLoose)
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => $"{QuickPrefix} {k}")
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return result;
+    }
+
+    private static bool SequenceEqualOrdinalIgnoreCase(string[] a, string[] b)
+    {
+        a ??= [];
+        b ??= [];
+        if (a.Length != b.Length) return false;
+
+        for (var i = 0; i < a.Length; i++)
+        {
+            if (!string.Equals(a[i], b[i], StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static string NormalizeLoose(string s)
+    {
+        s ??= "";
+        s = s.Trim().ToLowerInvariant();
+        
+        var chars = s.Select(ch => char.IsLetterOrDigit(ch) ? ch : ' ').ToArray();
+        var collapsed = string.Join(" ", new string(chars).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+        return collapsed.Trim();
     }
 }

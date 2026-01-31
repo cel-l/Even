@@ -44,7 +44,7 @@ public class Plugin : BaseUnityPlugin
     [
         "hey even",
         "hey jarvis",
-        "yo even"
+        "hey siri"
     ];
 
     private DiscordRpcClient _discordClient;
@@ -54,13 +54,23 @@ public class Plugin : BaseUnityPlugin
         InstallEmbeddedAssemblyResolver();
 
         CommandAPI.RegistryChanged += OnCommandRegistryChanged;
+        Settings.Changed += OnSettingsChanged;
+
         Settings.Initialize();
     }
 
     private void OnDestroy()
     {
         CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
+        Settings.Changed -= OnSettingsChanged;
+
         _discordClient?.Dispose();
+    }
+
+    private void OnSettingsChanged(Settings.Data data)
+    {
+        if (AssistantInstance)
+            AssistantInstance.ApplySettings();
     }
 
     private void OnCommandRegistryChanged()
@@ -110,7 +120,7 @@ public class Plugin : BaseUnityPlugin
             }
         };
     }
-    
+
     private void Start()
     {
         Notification.Show($"Loading...", 6f);
@@ -121,7 +131,7 @@ public class Plugin : BaseUnityPlugin
 
         InitializeDiscordRPC();
     }
-    
+
     private async void Initialize()
     {
         try
@@ -140,25 +150,27 @@ public class Plugin : BaseUnityPlugin
 
             _wakeWordAssistant = gameObject.AddComponent<Assistant>();
             _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
+            _wakeWordAssistant.ApplySettings();
             AssistantInstance = _wakeWordAssistant;
-            
+
             var versionCheck = await Network.Instance.FetchServerDataAsync(Version, NetworkSystem.Instance.LocalPlayer.UserId);
 
             if (versionCheck?.Outdated == true)
             {
                 Notification.Show($"Mod is outdated! Latest: {versionCheck.LatestVersion}", 0.6f, true, true);
                 enabled = false;
-                
+
                 CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
-                
+                Settings.Changed -= OnSettingsChanged;
+
                 Destroy(_voice);
                 Destroy(_input);
                 Destroy(_wakeWordAssistant);
-                
+
                 Destroy(this);
                 return;
             }
-            
+
             _hasInitialized = true;
             Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
         }
@@ -227,7 +239,7 @@ public class Plugin : BaseUnityPlugin
             ]
         });
     }
-    
+
     private void Update()
     {
         if (!_hasInitialized || !_voice.IsReady) return;
@@ -257,11 +269,13 @@ public class Plugin : BaseUnityPlugin
             if (_wakeWordAssistant)
             {
                 _wakeWordAssistant.RefreshCommands(_commands);
+                _wakeWordAssistant.ApplySettings();
             }
             else
             {
                 _wakeWordAssistant = gameObject.AddComponent<Assistant>();
                 _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
+                _wakeWordAssistant.ApplySettings();
             }
 
             Utils.Logger.Info($"Rebuilt commands. Command count: {_commands?.Count ?? 0}");
