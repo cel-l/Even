@@ -101,7 +101,7 @@ public static class Rig
         return str;
     }
     
-    public static void SetColorCode(int red, int green, int blue)
+    public static void SetColor(int red, int green, int blue)
     {
         var redValue = Mathf.Clamp01(red / 9f);
         var greenValue = Mathf.Clamp01(green / 9f);

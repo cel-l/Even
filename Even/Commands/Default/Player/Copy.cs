@@ -25,7 +25,7 @@ public sealed class Copy : IEvenCommand
                 int.TryParse(colorParts[1], out int green) &&
                 int.TryParse(colorParts[2], out int blue))
             {
-                Rig.SetColorCode(red, green, blue);
+                Rig.SetColor(red, green, blue);
             }
         }
 
