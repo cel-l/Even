@@ -76,7 +76,7 @@ public class Assistant : MonoBehaviour
         _voice.PhraseRecognizedWithStartTime += OnPhraseRecognizedWithStartTime;
 
         if (_hasInitialized) return;
-        
+
         _hasInitialized = true;
         GoToSleep();
     }
@@ -193,13 +193,15 @@ public class Assistant : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(text))
             return;
-
-        if (_state == AssistantState.Sleeping)
+        
+        if (IsWakeWord(text))
         {
-            if (IsWakeWord(text))
-                WakeUp();
+            WakeUp();
             return;
         }
+
+        if (_state == AssistantState.Sleeping)
+            return;
 
         if (_state == AssistantState.ExecutingCommand || _state == AssistantState.Cooldown)
         {
@@ -319,7 +321,7 @@ public class Assistant : MonoBehaviour
             StopQuickRecognizer();
             return;
         }
-        
+
         if (_quickRecognizer != null && _quickRecognizer.IsRunning && SequenceEqualOrdinalIgnoreCase(_quickKeywords, nextKeywords))
             return;
 
@@ -388,20 +390,14 @@ public class Assistant : MonoBehaviour
         b ??= [];
         if (a.Length != b.Length) return false;
 
-        for (var i = 0; i < a.Length; i++)
-        {
-            if (!string.Equals(a[i], b[i], StringComparison.OrdinalIgnoreCase))
-                return false;
-        }
-
-        return true;
+        return !a.Where((t, i) => !string.Equals(t, b[i], StringComparison.OrdinalIgnoreCase)).Any();
     }
 
     private static string NormalizeLoose(string s)
     {
         s ??= "";
         s = s.Trim().ToLowerInvariant();
-        
+
         var chars = s.Select(ch => char.IsLetterOrDigit(ch) ? ch : ' ').ToArray();
         var collapsed = string.Join(" ", new string(chars).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
         return collapsed.Trim();

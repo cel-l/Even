@@ -48,7 +48,9 @@ public class Plugin : BaseUnityPlugin
     ];
 
     private DiscordRpcClient _discordClient;
-
+    private bool _discordInitialized;
+    private bool _lastInRoomState;
+    
     private void Awake()
     {
         InstallEmbeddedAssemblyResolver();
@@ -120,7 +122,7 @@ public class Plugin : BaseUnityPlugin
             }
         };
     }
-
+    
     private void Start()
     {
         Notification.Show($"Loading...", 6f);
@@ -131,7 +133,7 @@ public class Plugin : BaseUnityPlugin
 
         InitializeDiscordRPC();
     }
-
+    
     private async void Initialize()
     {
         try
@@ -188,7 +190,8 @@ public class Plugin : BaseUnityPlugin
             _discordClient.Logger = new ConsoleLogger() { Level = LogLevel.Warning };
             _discordClient.Initialize();
 
-            UpdateDiscordPresence();
+            _discordInitialized = true;
+            UpdateDiscordPresence(force: true);
         }
         catch (Exception ex)
         {
@@ -196,11 +199,16 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
-    private void UpdateDiscordPresence()
+    private void UpdateDiscordPresence(bool force = false)
     {
-        if (_discordClient == null) return;
+        if (!_discordInitialized) return;
 
         var inRoom = NetworkSystem.Instance && NetworkSystem.Instance.InRoom;
+
+        if (!force && inRoom == _lastInRoomState) return;
+
+        _lastInRoomState = inRoom;
+
         var stateText = inRoom ? "In room" : "Not in room";
 
         var partySize = 1;
