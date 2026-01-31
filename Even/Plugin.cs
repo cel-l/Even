@@ -83,7 +83,15 @@ public class Plugin : BaseUnityPlugin
         _rebuildQueued = true;
         _rebuildAt = Time.time + RebuildDebounceSeconds;
     }
-
+    
+    void OnApplicationFocus(bool isFocused)
+    {
+        if (!isFocused)
+        {
+            Notification.Show("Application lost focus, voice recognition will not work until focused", 3f);
+        }
+    }
+    
     private static void InstallEmbeddedAssemblyResolver()
     {
         if (s_embeddedResolverInstalled) return;

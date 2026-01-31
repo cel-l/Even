@@ -295,5 +295,19 @@
       <None Remove="Assets\Resources\Sounds\notification.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\notification.wav" />
       <None Remove="Assets\References\DiscordRPC.dll" />
+      <None Remove="Assets\Resources\Sounds\Voice\got_it.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\got_it.mp3" />
+      <None Remove="Assets\Resources\Sounds\Voice\hey_even.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\hey_even.mp3" />
+      <None Remove="Assets\Resources\Sounds\Voice\hey_there.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\hey_there.mp3" />
+      <None Remove="Assets\Resources\Sounds\Voice\how_can_i_help.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\how_can_i_help.mp3" />
+      <None Remove="Assets\Resources\Sounds\Voice\hows_it_going.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\hows_it_going.mp3" />
+      <None Remove="Assets\Resources\Sounds\Voice\welcome.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\welcome.mp3" />
+      <None Remove="Assets\Resources\Sounds\Voice\whats_up.mp3" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\whats_up.mp3" />
     </ItemGroup>
 </Project>

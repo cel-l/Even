@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Photon.Pun;
 using UnityEngine;
@@ -112,5 +113,23 @@ public static class Audio
         {
             VRRig.LocalRig.PlayHandTapLocal(soundId, false, 0.8f);
         }
+    }
+    
+    public static async Task PlayVoiceSound(string message, float volume = 1f)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return;
+        
+        var fileName = Regex.Replace(message.ToLower(), @"[^\w]+", "_");
+        
+        var path = $"Voices/{fileName}";
+        
+        var clip = await LoadFromResourcesAsync(path);
+        if (clip == null)
+        {
+            Logger.Warning($"Voice clip not found: {path}");
+            return;
+        }
+        
+        PlaySound(path, volume);
     }
 }
