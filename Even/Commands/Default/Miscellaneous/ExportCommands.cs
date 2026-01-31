@@ -36,7 +36,7 @@ namespace Even.Commands.Default.Miscellaneous
                         Logger.Error($"Failed to export commands: {e}");
                     }
                 },
-                keywords: new[] { "dump commands", "save commands" }
+                keywords: ["dump commands", "save commands"]
             );
         }
     }
