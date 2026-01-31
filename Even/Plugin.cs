@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics;
 using BepInEx;
 using Even.Commands;
 using Even.Commands.Runtime;
@@ -13,8 +14,8 @@ using Input = Even.Interaction.Input;
 using DiscordRPC;
 using DiscordRPC.Logging;
 // ReSharper disable UseCollectionExpression
-// ReSharper disable RedundantExplicitArrayCreation
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable RedundantExplicitArrayCreation
 
 namespace Even;
 
@@ -53,7 +54,7 @@ public class Plugin : BaseUnityPlugin
     private DiscordRpcClient _discordClient;
     private bool _discordInitialized;
     private bool _lastInRoomState;
-    
+
     private void Awake()
     {
         InstallEmbeddedAssemblyResolver();
@@ -63,7 +64,33 @@ public class Plugin : BaseUnityPlugin
 
         Settings.Initialize();
     }
-    
+
+    private void CheckHasUsed()
+    {
+        if (Settings.IsEnabled("has_used"))
+        {
+            Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
+            return;
+        }
+        
+        try
+        {
+            _ = Audio.PlayVoiceSound("welcome");
+            
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://discord.gg/2mDhbzTpdT",
+                UseShellExecute = true
+            });
+                
+            Settings.SetEnabled("has_used", true, true);
+        }
+        catch (Exception ex)
+        {
+            Utils.Logger.Error($"Failed to open URL: {ex}");
+        }
+    }
+
     private void OnDestroy()
     {
         CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
@@ -71,7 +98,15 @@ public class Plugin : BaseUnityPlugin
 
         _discordClient?.Dispose();
     }
-
+    
+    private void OnApplicationFocus(bool isFocused)
+    {
+        if (!isFocused)
+        {
+            Notification.Show("Application lost focus, voice recognition will not work until focused", 3f);
+        }
+    }
+    
     private void OnSettingsChanged(Settings.Data data)
     {
         if (AssistantInstance)
@@ -83,15 +118,7 @@ public class Plugin : BaseUnityPlugin
         _rebuildQueued = true;
         _rebuildAt = Time.time + RebuildDebounceSeconds;
     }
-    
-    void OnApplicationFocus(bool isFocused)
-    {
-        if (!isFocused)
-        {
-            Notification.Show("Application lost focus, voice recognition will not work until focused", 3f);
-        }
-    }
-    
+
     private static void InstallEmbeddedAssemblyResolver()
     {
         if (s_embeddedResolverInstalled) return;
@@ -144,7 +171,7 @@ public class Plugin : BaseUnityPlugin
 
         InitializeDiscordRPC();
     }
-    
+
     private async void Initialize()
     {
         try
@@ -185,7 +212,8 @@ public class Plugin : BaseUnityPlugin
             }
 
             _hasInitialized = true;
-            Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
+            
+            CheckHasUsed();
         }
         catch (Exception ex)
         {
