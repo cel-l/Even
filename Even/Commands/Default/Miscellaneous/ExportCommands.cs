@@ -6,38 +6,67 @@ using Even.Utils;
 using UnityEngine;
 using Logger = Even.Utils.Logger;
 using Newtonsoft.Json;
+// ReSharper disable UnusedAutoPropertyAccessor.Local
+namespace Even.Commands.Default.Miscellaneous;
 
-namespace Even.Commands.Default.Miscellaneous
+public sealed class ExportCommands : IEvenCommand
 {
-    public sealed class ExportCommands : IEvenCommand
+    private class CommandExport
     {
-        public Command Create()
-        {
-            return new Command(
-                name: "export commands",
-                category: "Utility",
-                description: "Exports all registered commands to a JSON file",
-                action: () =>
+        public string Name { get; set; }
+        public string Category { get; set; }
+        public string Description { get; set; }
+        public string Keywords { get; set; }
+    }
+
+    public Command Create()
+    {
+        return new Command(
+            name: "export commands",
+            category: "Utility",
+            description: "Exports all registered commands to a JSON file",
+            action: () =>
+            {
+                try
                 {
-                    try
-                    {
-                        var allCommands = Plugin.Instance._commands;
-                        
-                        var json = JsonConvert.SerializeObject(allCommands, Formatting.Indented);
+                    var allCommands = Plugin.Instance._commands;
+                    var exportList = new List<CommandExport>();
 
-                        var filePath = Path.Combine(Application.persistentDataPath, "commands_export.json");
-                        File.WriteAllText(filePath, json);
-
-                        Audio.PlaySound("success.wav", 0.74f);
-                        Notification.Show($"Exported {allCommands.Count} commands to {filePath}", 0.6f, false, true);
-                    }
-                    catch (Exception e)
+                    foreach (var cmd in allCommands)
                     {
-                        Logger.Error($"Failed to export commands: {e}");
+                        try
+                        {
+                            var keywords = cmd.Keywords != null 
+                                ? $"[{string.Join(", ", cmd.Keywords.Select(k => $"\"{k}\""))}]" 
+                                : "[]";
+
+                            exportList.Add(new CommandExport
+                            {
+                                Name = cmd.Name ?? "Unnamed",
+                                Category = cmd.Category ?? "Uncategorized",
+                                Description = cmd.Description ?? "",
+                                Keywords = keywords
+                            });
+                        }
+                        catch (Exception exCmd)
+                        {
+                            Logger.Warning($"Failed to process command '{cmd.Name ?? "Unknown"}': {exCmd}");
+                        }
                     }
-                },
-                keywords: ["dump commands", "save commands"]
-            );
-        }
+
+                    var json = JsonConvert.SerializeObject(exportList, Formatting.Indented);
+                    var filePath = Path.Combine(Application.persistentDataPath, "commands_export.json");
+                    File.WriteAllText(filePath, json);
+
+                    Audio.PlaySound("success.wav", 0.74f);
+                    Notification.Show($"Exported {exportList.Count} commands to {filePath}", 0.6f, false, true);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"Failed to export commands: {e}");
+                }
+            },
+            keywords: ["dump commands", "save commands"]
+        );
     }
 }
