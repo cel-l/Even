@@ -75,7 +75,8 @@ public class Plugin : BaseUnityPlugin
         
         try
         {
-            _ = Audio.PlayVoiceSound("welcome");
+            Audio.PlaySound("wake.wav", 0.74f);
+            _ = Audio.PlayVoiceSound("welcome", 0.74f);
             
             Process.Start(new ProcessStartInfo
             {
