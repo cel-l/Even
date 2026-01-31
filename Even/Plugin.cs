@@ -10,6 +10,9 @@ using Even.Interaction;
 using Even.Utils;
 using UnityEngine;
 using Input = Even.Interaction.Input;
+using DiscordRPC;
+using DiscordRPC.Logging;
+
 namespace Even;
 
 [BepInPlugin("cel.even", Mod, Version)]
@@ -44,6 +47,8 @@ public class Plugin : BaseUnityPlugin
         "yo even"
     ];
 
+    private DiscordRpcClient _discordClient;
+
     private void Awake()
     {
         InstallEmbeddedAssemblyResolver();
@@ -55,6 +60,7 @@ public class Plugin : BaseUnityPlugin
     private void OnDestroy()
     {
         CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
+        _discordClient?.Dispose();
     }
 
     private void OnCommandRegistryChanged()
@@ -73,13 +79,20 @@ public class Plugin : BaseUnityPlugin
             try
             {
                 var requested = new AssemblyName(args.Name).Name + ".dll";
-                if (!string.Equals(requested, "MonkeNotificationLib.dll", StringComparison.OrdinalIgnoreCase))
+
+                string[] embeddedDlls =
+                [
+                    "MonkeNotificationLib.dll",
+                    "DiscordRPC.dll"
+                ];
+
+                if (!embeddedDlls.Any(dll => string.Equals(requested, dll, StringComparison.OrdinalIgnoreCase)))
                     return null;
 
                 var self = Assembly.GetExecutingAssembly();
                 var resourceName = self
                     .GetManifestResourceNames()
-                    .FirstOrDefault(n => n.EndsWith("MonkeNotificationLib.dll", StringComparison.OrdinalIgnoreCase));
+                    .FirstOrDefault(n => n.EndsWith(requested, StringComparison.OrdinalIgnoreCase));
 
                 if (resourceName == null)
                     return null;
@@ -106,8 +119,10 @@ public class Plugin : BaseUnityPlugin
             CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 += Initialize;
         else
             Initialize();
+
+        InitializeDiscordRPC();
     }
-    
+
     private async void Initialize()
     {
         try
@@ -127,7 +142,7 @@ public class Plugin : BaseUnityPlugin
             _wakeWordAssistant = gameObject.AddComponent<Assistant>();
             _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
             AssistantInstance = _wakeWordAssistant;
-            
+
             await Network.Instance.FetchServerDataAsync(Version, NetworkSystem.Instance.LocalPlayer.UserId);
 
             _hasInitialized = true;
@@ -137,6 +152,48 @@ public class Plugin : BaseUnityPlugin
         {
             Utils.Logger.Error($"Failed to initialize: {ex}");
         }
+    }
+
+    private void InitializeDiscordRPC()
+    {
+        try
+        {
+            _discordClient = new DiscordRpcClient("1467006876230094878");
+            _discordClient.Logger = new ConsoleLogger() { Level = LogLevel.Warning };
+            _discordClient.Initialize();
+
+            UpdateDiscordPresence();
+        }
+        catch (Exception ex)
+        {
+            Utils.Logger.Error($"Failed to initialize DiscordRPC: {ex}");
+        }
+    }
+
+    private void UpdateDiscordPresence()
+    {
+        if (_discordClient == null) return;
+
+        var stateText = NetworkSystem.Instance && NetworkSystem.Instance.InRoom ? "In room" : "Idle";
+
+        _discordClient.SetPresence(new RichPresence()
+        {
+            Details = "Playing Gorilla Tag with Even",
+            State = stateText,
+            Assets = new DiscordRPC.Assets()
+            {
+                LargeImageKey = "even_logo",
+                LargeImageText = "Even"
+            },
+            Buttons =
+            [
+                new Button()
+                {
+                    Label = "Get Even",
+                    Url = "https://even.rest"
+                }
+            ]
+        });
     }
 
     private void Update()
@@ -153,7 +210,9 @@ public class Plugin : BaseUnityPlugin
         {
             Utils.Logger.Info("left joystick clicked");
         }
-        
+
+        UpdateDiscordPresence();
+
         Settings.Tick();
     }
 
@@ -162,7 +221,7 @@ public class Plugin : BaseUnityPlugin
         try
         {
             _commands = Command.CreateAll();
-            
+
             if (_wakeWordAssistant)
             {
                 _wakeWordAssistant.RefreshCommands(_commands);
