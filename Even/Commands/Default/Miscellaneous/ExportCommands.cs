@@ -5,6 +5,7 @@ using System.Linq;
 using Even.Utils;
 using UnityEngine;
 using Logger = Even.Utils.Logger;
+using Newtonsoft.Json;
 
 namespace Even.Commands.Default.Miscellaneous
 {
@@ -21,17 +22,8 @@ namespace Even.Commands.Default.Miscellaneous
                     try
                     {
                         var allCommands = Plugin.Instance._commands;
-
-                        var jsonData = allCommands.Select(c => new SerializableCommand
-                        {
-                            Name = c.Name,
-                            Category = c.Category,
-                            Description = c.Description,
-                            Keywords = c.Keywords?.ToArray() ?? new string[0]
-                        }).ToList();
-
-                        var wrapper = new Wrapper { Commands = jsonData };
-                        var json = JsonUtility.ToJson(wrapper, true);
+                        
+                        var json = JsonConvert.SerializeObject(allCommands, Formatting.Indented);
 
                         var filePath = Path.Combine(Application.persistentDataPath, "commands_export.json");
                         File.WriteAllText(filePath, json);
@@ -47,20 +39,5 @@ namespace Even.Commands.Default.Miscellaneous
                 keywords: new[] { "dump commands", "save commands" }
             );
         }
-    }
-
-    [Serializable]
-    public class SerializableCommand
-    {
-        public string Name;
-        public string Category;
-        public string Description;
-        public string[] Keywords;
-    }
-
-    [Serializable]
-    public class Wrapper
-    {
-        public List<SerializableCommand> Commands;
     }
 }
