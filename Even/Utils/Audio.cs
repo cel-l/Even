@@ -115,21 +115,13 @@ public static class Audio
         }
     }
     
-    public static async Task PlayVoiceSound(string message, float volume = 1f)
+    public static Task PlayVoiceSound(string message, float volume = 1f)
     {
-        if (string.IsNullOrWhiteSpace(message)) return;
+        if (string.IsNullOrWhiteSpace(message)) return Task.CompletedTask;
         
         var fileName = Regex.Replace(message.ToLower(), @"[^\w]+", "_");
         
-        var path = $"Voices/{fileName}";
-        
-        var clip = await LoadFromResourcesAsync(path);
-        if (clip == null)
-        {
-            Logger.Warning($"Voice clip not found: {path}");
-            return;
-        }
-        
-        PlaySound(path, volume);
+        PlaySound(fileName, volume);
+        return Task.CompletedTask;
     }
 }

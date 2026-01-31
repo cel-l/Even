@@ -281,9 +281,16 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Include="Assets\Resources\Sounds\welcome.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\whats_up.wav" />
       <None Remove="Assets\References\MonkeNotificationLib.dll" />
       <EmbeddedResource Include="Assets\References\MonkeNotificationLib.dll" />
       <None Remove="Assets\Resources\Sounds\sleep.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\got_it.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\hey_even.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\hey_there.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\hows_it_going.wav" />
+      <EmbeddedResource Include="Assets\Resources\Sounds\how_can_i_help.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\sleep.wav" />
       <None Remove="Assets\Resources\Sounds\success.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\success.wav" />
@@ -303,22 +310,11 @@
       <None Remove="Assets\Resources\Sounds\Voice\welcome.mp3" />
       <None Remove="Assets\Resources\Sounds\Voice\whats_up.mp3" />
       <None Remove="Assets\Resources\Sounds\Voice\got_it.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\got_it.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\hey_even.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\hey_even.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\hey_there.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\hey_there.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\how_can_i_help.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\how_can_i_help.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\hows_it_going.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\hows_it_going.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\welcome.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\welcome.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\whats_up.wav" />
-      <EmbeddedResource Include="Assets\Resources\Sounds\Voice\whats_up.wav" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Assets\Resources\Sounds\Voice\" />
     </ItemGroup>
 </Project>

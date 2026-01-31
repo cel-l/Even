@@ -288,7 +288,7 @@ public class Assistant : MonoBehaviour
 
         var index = UnityEngine.Random.Range(0, _wakeMessages.Length);
         var message = _wakeMessages[index];
-
+        
         _ = Audio.PlayVoiceSound(message);
         NotificationController.AppendMessage(Plugin.Alias, message, false, 0.6f);
 
