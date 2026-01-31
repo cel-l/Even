@@ -119,8 +119,10 @@ public static class Audio
     {
         if (string.IsNullOrWhiteSpace(message)) return Task.CompletedTask;
         
-        var fileName = Regex.Replace(message.ToLower(), @"[^\w]+", "_");
-        
+        var fileName = Regex
+            .Replace(message.ToLower().Replace("'", ""), @"[^a-z0-9]+", "_")
+            .Trim('_');
+
         PlaySound(fileName, volume);
         return Task.CompletedTask;
     }

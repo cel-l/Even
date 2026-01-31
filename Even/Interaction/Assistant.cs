@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Even.Commands;
 using Even.Utils;
 using MonkeNotificationLib;
@@ -38,12 +39,13 @@ public class Assistant : MonoBehaviour
 
     private readonly string[] _wakeMessages =
     [
-        "How can I help?",
+        "How can I help",
         "Hey there!",
-        "What's up?"
+        "What's up?",
+        "How's it going?"
     ];
     
-    private const string QuickPrefix = "even";
+    private readonly string[] QuickPrefixes = ["even", "jarvis"];
     private KeywordRecognizer _quickRecognizer;
     private string[] _quickKeywords = [];
     private bool _quickCommandsEnabledCached;
@@ -235,21 +237,24 @@ public class Assistant : MonoBehaviour
         
         var normalized = NormalizeLoose(text);
 
-        const string prefix = QuickPrefix;
-        if (!normalized.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
-            return;
-
-        var remainder = normalized[(prefix.Length + 1)..].Trim();
-        if (string.IsNullOrWhiteSpace(remainder))
-            return;
-
-        if (!Command.TryFindByRecognizedText(_commands, remainder, out var command))
+        foreach (var prefix in QuickPrefixes)
         {
-            Logger.Info($"Quick command matched keyword '{text}', but remainder did not match a command: '{remainder}'");
+            if (!normalized.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var remainder = normalized[(prefix.Length + 1)..].Trim();
+            if (string.IsNullOrWhiteSpace(remainder))
+                continue;
+
+            if (!Command.TryFindByRecognizedText(_commands, remainder, out var command))
+            {
+                Logger.Info($"Quick command matched keyword '{text}', but remainder did not match a command: '{remainder}'");
+                continue;
+            }
+
+            ExecuteCommand(command);
             return;
         }
-
-        ExecuteCommand(command);
     }
 
     private void ExecuteCommand(Command command)
@@ -283,13 +288,18 @@ public class Assistant : MonoBehaviour
     {
         _state = AssistantState.Awake;
         _awakeUntilTime = Time.time + AwakeWindow;
-        
+
         Audio.PlaySound("wake.wav", 1.3f);
 
         var index = UnityEngine.Random.Range(0, _wakeMessages.Length);
         var message = _wakeMessages[index];
-        
-        _ = Audio.PlayVoiceSound(message);
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(400);
+            await Audio.PlayVoiceSound(message);
+        });
+
         NotificationController.AppendMessage(Plugin.Alias, message, false, 0.6f);
 
         var commandKeywords = Command.GetAllKeywords(_commands);
@@ -374,11 +384,13 @@ public class Assistant : MonoBehaviour
             return [];
 
         var raw = Command.GetAllKeywords(_commands);
-        
-        var result = raw
-            .Select(NormalizeLoose)
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .Select(k => $"{QuickPrefix} {k}")
+
+        var result = QuickPrefixes
+            .SelectMany(prefix => raw
+                .Select(NormalizeLoose)
+                .Where(k => !string.IsNullOrWhiteSpace(k))
+                .Select(k => $"{prefix} {k}")
+            )
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
