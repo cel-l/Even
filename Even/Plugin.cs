@@ -13,6 +13,8 @@ using UnityEngine;
 using Input = Even.Interaction.Input;
 using DiscordRPC;
 using DiscordRPC.Logging;
+using UnityEngine.Serialization;
+
 // ReSharper disable UseCollectionExpression
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable RedundantExplicitArrayCreation
@@ -22,6 +24,8 @@ namespace Even;
 [BepInPlugin("cel.even", Mod, Version)]
 public class Plugin : BaseUnityPlugin
 {
+    public static Plugin Instance { get; private set; }
+
     public const string Mod = "Even";
     public const string Version = "1.0.0";
     public const string Alias = "<color=#8aadf4>E</color><color=#7aa2f7>v</color><color=#7289da>e</color><color=#5b6ee0>n</color>";
@@ -38,7 +42,7 @@ public class Plugin : BaseUnityPlugin
 
     private bool _hasInitialized;
 
-    private List<Command> _commands;
+    public List<Command> _commands;
 
     private bool _rebuildQueued;
     private float _rebuildAt;
@@ -57,6 +61,7 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        Instance = this;
         InstallEmbeddedAssemblyResolver();
 
         CommandAPI.RegistryChanged += OnCommandRegistryChanged;
