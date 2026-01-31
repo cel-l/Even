@@ -82,8 +82,7 @@ public class Plugin : BaseUnityPlugin
 
                 string[] embeddedDlls =
                 [
-                    "MonkeNotificationLib.dll",
-                    "DiscordRPC.dll"
+                    "MonkeNotificationLib.dll"
                 ];
 
                 if (!embeddedDlls.Any(dll => string.Equals(requested, dll, StringComparison.OrdinalIgnoreCase)))
@@ -122,7 +121,7 @@ public class Plugin : BaseUnityPlugin
 
         InitializeDiscordRPC();
     }
-
+    
     private async void Initialize()
     {
         try
@@ -142,9 +141,24 @@ public class Plugin : BaseUnityPlugin
             _wakeWordAssistant = gameObject.AddComponent<Assistant>();
             _wakeWordAssistant.Initialize(_voice, _commands, WakeAliases);
             AssistantInstance = _wakeWordAssistant;
+            
+            var versionCheck = await Network.Instance.FetchServerDataAsync(Version, NetworkSystem.Instance.LocalPlayer.UserId);
 
-            await Network.Instance.FetchServerDataAsync(Version, NetworkSystem.Instance.LocalPlayer.UserId);
-
+            if (versionCheck?.Outdated == true)
+            {
+                Notification.Show($"Mod is outdated! Latest: {versionCheck.LatestVersion}", 0.6f, true, true);
+                enabled = false;
+                
+                CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
+                
+                Destroy(_voice);
+                Destroy(_input);
+                Destroy(_wakeWordAssistant);
+                
+                Destroy(this);
+                return;
+            }
+            
             _hasInitialized = true;
             Notification.Show($"Loaded {_commands?.Count ?? 0} commands successfully", 0.8f, true, true);
         }
@@ -174,20 +188,38 @@ public class Plugin : BaseUnityPlugin
     {
         if (_discordClient == null) return;
 
-        var stateText = NetworkSystem.Instance && NetworkSystem.Instance.InRoom ? "In room" : "Idle";
+        var inRoom = NetworkSystem.Instance && NetworkSystem.Instance.InRoom;
+        var stateText = inRoom ? "In room" : "Idle";
 
-        _discordClient.SetPresence(new RichPresence()
+        var partySize = 1;
+        var partyMax = 10;
+
+        if (inRoom && NetworkSystem.Instance.CurrentRoom != null)
+        {
+            partySize = NetworkSystem.Instance.RoomPlayerCount;
+            partyMax = NetworkSystem.Instance.CurrentRoom.MaxPlayers;
+        }
+
+        _discordClient.SetPresence(new RichPresence
         {
             Details = "Playing Gorilla Tag with Even",
             State = stateText,
-            Assets = new DiscordRPC.Assets()
+            Assets = new DiscordRPC.Assets
             {
-                LargeImageKey = "even_logo",
-                LargeImageText = "Even"
+                LargeImageKey = "forest",
+                LargeImageText = "Gorilla Tag",
+                SmallImageKey = "even_logo",
+                SmallImageText = "Even"
             },
+            Party = inRoom ? new Party
+            {
+                ID = NetworkSystem.Instance.RoomName,
+                Size = partySize,
+                Max = partyMax
+            } : null,
             Buttons =
             [
-                new Button()
+                new Button
                 {
                     Label = "Get Even",
                     Url = "https://even.rest"
@@ -195,7 +227,7 @@ public class Plugin : BaseUnityPlugin
             ]
         });
     }
-
+    
     private void Update()
     {
         if (!_hasInitialized || !_voice.IsReady) return;

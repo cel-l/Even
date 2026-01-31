@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Threading.Tasks;
 using Even.Models;
 using MonkeNotificationLib;
@@ -14,12 +15,12 @@ public sealed class Network
     public static Network Instance { get; } = new();
     private Network() { }
 
-    public async Task<int> FetchServerDataAsync(string version, string user)
+    public async Task<VersionCheckInfo?> FetchServerDataAsync(string version, string user)
     {
         if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(user))
         {
             Logger.Error("Version or user is empty");
-            return 0;
+            return null;
         }
 
         try
@@ -29,37 +30,39 @@ public sealed class Network
             if (string.IsNullOrWhiteSpace(json))
             {
                 Logger.Error("Empty server response");
-                return 0;
+                return null;
             }
 
             var data = JsonConvert.DeserializeObject<ServerResponse>(json);
             if (data == null)
             {
                 Logger.Error("Failed to deserialize server response");
-                return 0;
+                return null;
             }
 
-            if (data.VersionCheck != null)
-            {
-                var check = data.VersionCheck;
-                if (check.Outdated)
-                    NotificationController.AppendMessage(Plugin.Alias, $"Mod is outdated! Latest: {check.LatestVersion}", false, 20f);
+            VersionCheckInfo? versionCheck = null;
 
+            {
+                versionCheck = data.VersionCheck;
+                var check = data.VersionCheck;
+                
                 Logger.Info(check.Outdated ? $"Version outdated: {check.Message}" : $"Version check: {check.Message}");
             }
 
-            if (string.IsNullOrWhiteSpace(data.CustomProperty) || PhotonNetwork.LocalPlayer == null) return 0;
-            PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable
+            if (!string.IsNullOrWhiteSpace(data.CustomProperty) && PhotonNetwork.LocalPlayer != null)
             {
-                { data.CustomProperty.Trim(), true }
-            });
+                PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable
+                {
+                    { data.CustomProperty.Trim(), true }
+                });
+            }
 
-            return 0;
+            return versionCheck;
         }
         catch (Exception ex)
         {
             Logger.Error($"FetchServerDataAsync failed: {ex}");
-            return 0;
+            return null;
         }
     }
 
@@ -71,7 +74,7 @@ public sealed class Network
         });
 
         var bodyBytes = System.Text.Encoding.UTF8.GetBytes(jsonBody);
-            
+
         using var req = new UnityWebRequest(url, "POST");
         req.uploadHandler = new UploadHandlerRaw(bodyBytes);
         req.downloadHandler = new DownloadHandlerBuffer();
@@ -86,7 +89,7 @@ public sealed class Network
     public class ServerResponse
     {
         [JsonProperty("custom_property")] public string CustomProperty { get; private set; } = "";
-        [JsonProperty("version_check")] public VersionCheckInfo VersionCheck { get; private set; }
+        [JsonProperty("version_check")] public VersionCheckInfo VersionCheck { get; private set; } = null!;
     }
 
     public class VersionCheckInfo
