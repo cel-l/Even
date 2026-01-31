@@ -189,7 +189,7 @@ public class Plugin : BaseUnityPlugin
         if (_discordClient == null) return;
 
         var inRoom = NetworkSystem.Instance && NetworkSystem.Instance.InRoom;
-        var stateText = inRoom ? "In room" : "Idle";
+        var stateText = inRoom ? "In room" : "Not in room";
 
         var partySize = 1;
         var partyMax = 10;
@@ -202,11 +202,11 @@ public class Plugin : BaseUnityPlugin
 
         _discordClient.SetPresence(new RichPresence
         {
-            Details = "Playing Gorilla Tag with Even",
+            Details = "Gorilla Tag with Even",
             State = stateText,
             Assets = new DiscordRPC.Assets
             {
-                LargeImageKey = "forest",
+                LargeImageKey = "gt_forest",
                 LargeImageText = "Gorilla Tag",
                 SmallImageKey = "even_logo",
                 SmallImageText = "Even"
