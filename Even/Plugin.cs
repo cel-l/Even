@@ -12,6 +12,9 @@ using UnityEngine;
 using Input = Even.Interaction.Input;
 using DiscordRPC;
 using DiscordRPC.Logging;
+// ReSharper disable UseCollectionExpression
+// ReSharper disable RedundantExplicitArrayCreation
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 
 namespace Even;
 
@@ -60,7 +63,7 @@ public class Plugin : BaseUnityPlugin
 
         Settings.Initialize();
     }
-
+    
     private void OnDestroy()
     {
         CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
@@ -237,14 +240,14 @@ public class Plugin : BaseUnityPlugin
                 Size = partySize,
                 Max = partyMax
             } : null,
-            Buttons =
-            [
+            Buttons = new Button[]
+            {
                 new Button
                 {
                     Label = "Get Even",
                     Url = "https://even.rest"
                 }
-            ]
+            }
         });
     }
 

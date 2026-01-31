@@ -283,7 +283,7 @@ public class Assistant : MonoBehaviour
     {
         _state = AssistantState.Awake;
         _awakeUntilTime = Time.time + AwakeWindow;
-
+        
         Audio.PlaySound("wake.wav", 1.3f);
 
         var index = UnityEngine.Random.Range(0, _wakeMessages.Length);
