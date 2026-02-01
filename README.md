@@ -1,4 +1,6 @@
 ![Even Banner](Even/Branding/heyeven.png)
+![all](https://img.shields.io/github/downloads/cel-l/Even/total)
+
 
 ---
 
