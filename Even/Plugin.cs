@@ -13,7 +13,6 @@ using UnityEngine;
 using Input = Even.Interaction.Input;
 using DiscordRPC;
 using DiscordRPC.Logging;
-using UnityEngine.Serialization;
 
 // ReSharper disable UseCollectionExpression
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
@@ -96,7 +95,7 @@ public class Plugin : BaseUnityPlugin
             Utils.Logger.Error($"Failed to open URL: {ex}");
         }
     }
-
+    
     private void OnDestroy()
     {
         CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
