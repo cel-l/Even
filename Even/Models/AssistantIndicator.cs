@@ -26,7 +26,7 @@ public class AssistantIndicator : MonoBehaviour
     private static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
     private static readonly int ZWrite = Shader.PropertyToID("_ZWrite");
     
-    private readonly Vector3 _baseLocalPosition = new(0f, -0.28f, 0.474f);
+    private readonly Vector3 _baseLocalPosition = new(0f, -0.28f, 0.484f);
     private readonly Vector3 _baseScale = new(0.105f, 0.105f, 0.105f);
 
     private float _targetAlpha;
