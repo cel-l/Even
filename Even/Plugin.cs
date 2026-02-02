@@ -243,7 +243,7 @@ public class Plugin : BaseUnityPlugin
             Utils.Logger.Error($"Failed to initialize DiscordRPC: {ex}");
         }
     }
-
+    
     private void UpdateDiscordPresence(bool force = false)
     {
         if (!_discordInitialized) return;
@@ -270,10 +270,8 @@ public class Plugin : BaseUnityPlugin
             State = stateText,
             Assets = new DiscordRPC.Assets
             {
-                LargeImageKey = "gt_forest",
-                LargeImageText = "Gorilla Tag",
-                SmallImageKey = "even_logo",
-                SmallImageText = "Even"
+                LargeImageKey = "even_logo",
+                LargeImageText = "Even",
             },
             Party = inRoom ? new Party
             {
