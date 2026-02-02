@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Even.Commands;
+using Even.Models;
 using Even.Utils;
 using MonkeNotificationLib;
 using Logger = Even.Utils.Logger;
@@ -30,6 +31,7 @@ public class Assistant : MonoBehaviour
     }
 
     private AssistantState _state = AssistantState.Sleeping;
+    private AssistantIndicator _indicator;
 
     private const float CommandCooldownSeconds = 1f;
     private float _cooldownUntilTime;
@@ -78,7 +80,10 @@ public class Assistant : MonoBehaviour
         _voice.PhraseRecognizedWithStartTime += OnPhraseRecognizedWithStartTime;
 
         if (_hasInitialized) return;
-
+        
+        _indicator = new GameObject("AssistantIndicatorController").AddComponent<AssistantIndicator>();
+        _indicator.SetState(AssistantIndicator.IndicatorState.Sleeping);
+        
         _hasInitialized = true;
         GoToSleep();
     }
@@ -306,12 +311,16 @@ public class Assistant : MonoBehaviour
         _voice.StartListening(commandKeywords);
 
         _state = AssistantState.Listening;
+        _indicator?.SetState(AssistantIndicator.IndicatorState.Listening);
+
         Logger.Info("Even awakened (listening for commands)");
     }
 
     public void GoToSleep()
     {
         _state = AssistantState.Sleeping;
+        _indicator?.SetState(AssistantIndicator.IndicatorState.Sleeping);
+        
         _voice.StartListening(_wakeKeywords);
 
         Audio.PlaySound("sleep.wav", 0.74f);

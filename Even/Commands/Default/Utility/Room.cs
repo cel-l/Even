@@ -114,7 +114,7 @@ public sealed class RoomInfo : IEvenCommand
         return new Command(
             name: "room info",
             category: "Utility",
-            description: "Print details about the current room (if in a room)",
+            description: "Show details about the current room (if in a room)",
             action: void () =>
             {
                 try
@@ -132,7 +132,7 @@ public sealed class RoomInfo : IEvenCommand
                     Logger.Error($"Failed to run command 'lobby hop': {e}");
                 }
             },
-            keywords: ["current room", "what room am i in"]
+            keywords: ["current room", "where am i", "what room am i in"]
         );
     }
 }

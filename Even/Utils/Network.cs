@@ -51,12 +51,10 @@ public sealed class Network
 
             if (!string.IsNullOrWhiteSpace(data.CustomProperty) && PhotonNetwork.LocalPlayer != null)
             {
-                /*
-                 .LocalPlayer.SetCustomProperties(new Hashtable
+                 PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable
                 {
                     { data.CustomProperty.Trim(), true }
                 });
-                */
             }
 
             return versionCheck;

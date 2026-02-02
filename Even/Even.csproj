@@ -316,5 +316,13 @@
       <None Remove="Assets\Resources\Sounds\Voice\hows_it_going.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\welcome.wav" />
       <None Remove="Assets\Resources\Sounds\Voice\whats_up.wav" />
+      <None Remove="Assets\Resources\Images\even_icon.png" />
+      <EmbeddedResource Include="Assets\Resources\Images\even_icon.png" />
+      <None Remove="Assets\Resources\Images\speaker_icon.png" />
+      <EmbeddedResource Include="Assets\Resources\Images\speaker_icon.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\Resources\Images\" />
     </ItemGroup>
 </Project>
