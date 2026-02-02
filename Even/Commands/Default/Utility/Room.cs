@@ -106,3 +106,33 @@ public sealed class LobbyHop : IEvenCommand
         );
     }
 }
+
+public sealed class RoomInfo : IEvenCommand
+{
+    public Command Create()
+    {
+        return new Command(
+            name: "room info",
+            category: "Utility",
+            description: "Print details about the current room (if in a room)",
+            action: void () =>
+            {
+                try
+                {
+                    if (!NetworkSystem.Instance.InRoom) return;
+
+                    var roomName = NetworkSystem.Instance.RoomName;
+                    var players = NetworkSystem.Instance.RoomPlayerCount;
+                    var queue = GorillaComputer.instance.currentQueue;
+                    
+                    var message = $"You are in a {char.ToUpper(queue[0]) + queue[1..].ToLower()} room {roomName} with {players}/10 players";
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"Failed to run command 'lobby hop': {e}");
+                }
+            },
+            keywords: ["current room", "what room am i in"]
+        );
+    }
+}

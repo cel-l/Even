@@ -13,6 +13,7 @@ using UnityEngine;
 using Input = Even.Interaction.Input;
 using DiscordRPC;
 using DiscordRPC.Logging;
+using Photon.Pun;
 
 // ReSharper disable UseCollectionExpression
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
@@ -225,7 +226,7 @@ public class Plugin : BaseUnityPlugin
             Utils.Logger.Error($"Failed to initialize: {ex}");
         }
     }
-
+    
     private void InitializeDiscordRPC()
     {
         try
@@ -256,12 +257,11 @@ public class Plugin : BaseUnityPlugin
         var stateText = inRoom ? "In room" : "Not in room";
 
         var partySize = 1;
-        var partyMax = 10;
+        const int partyMax = 10;
 
-        if (inRoom && NetworkSystem.Instance.CurrentRoom != null)
+        if (inRoom && PhotonNetwork.CurrentRoom != null)
         {
-            partySize = NetworkSystem.Instance.RoomPlayerCount;
-            partyMax = NetworkSystem.Instance.CurrentRoom.MaxPlayers;
+            partySize = PhotonNetwork.CurrentRoom.PlayerCount;
         }
 
         _discordClient.SetPresence(new RichPresence
