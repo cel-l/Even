@@ -79,7 +79,6 @@ public sealed class Network
         req.uploadHandler = new UploadHandlerRaw(bodyBytes);
         req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/json");
-        req.SetRequestHeader("User-Agent", "UnityPlayer/6000.0.0f1 (UnityWebRequest/1.0)");
 
         await req.SendWebRequest();
 
