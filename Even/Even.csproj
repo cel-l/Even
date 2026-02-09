@@ -283,8 +283,6 @@
     <ItemGroup>
       <EmbeddedResource Include="Assets\Resources\Sounds\welcome.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\whats_up.wav" />
-      <None Remove="Assets\References\MonkeNotificationLib.dll" />
-      <EmbeddedResource Include="Assets\References\MonkeNotificationLib.dll" />
       <None Remove="Assets\Resources\Sounds\sleep.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\got_it.wav" />
       <EmbeddedResource Include="Assets\Resources\Sounds\hey_even.wav" />
@@ -320,9 +318,12 @@
       <EmbeddedResource Include="Assets\Resources\Images\even_icon.png" />
       <None Remove="Assets\Resources\Images\speaker_icon.png" />
       <EmbeddedResource Include="Assets\Resources\Images\speaker_icon.png" />
+      <None Remove="Assets\References\MonkeNotificationLib.dll" />
+      <EmbeddedResource Include="Assets\References\MonkeNotificationLib.dll" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Assets\References\" />
       <Folder Include="Assets\Resources\Images\" />
     </ItemGroup>
 </Project>
