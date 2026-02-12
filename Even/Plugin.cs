@@ -27,7 +27,7 @@ public class Plugin : BaseUnityPlugin
     public static Plugin Instance { get; private set; }
 
     public const string Mod = "Even";
-    public const string Version = "1.0.0";
+    public const string Version = "1.0.1";
     public const string Alias = "<color=#8aadf4>E</color><color=#7aa2f7>v</color><color=#7289da>e</color><color=#5b6ee0>n</color>";
 
     private static bool s_embeddedResolverInstalled;
