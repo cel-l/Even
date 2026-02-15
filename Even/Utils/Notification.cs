@@ -1,4 +1,5 @@
 ﻿using MonkeNotificationLib;
+
 namespace Even.Utils;
 
 public static class Notification
@@ -19,7 +20,7 @@ public static class Notification
             return;
         
         NotificationController.AppendMessage(Plugin.Alias, message, false, durationSeconds);
-
+        
         if (playSound)
         {
             Audio.PlaySound("notification.wav", 1.3f);

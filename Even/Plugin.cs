@@ -99,6 +99,7 @@ public class Plugin : BaseUnityPlugin
     
     private void OnDestroy()
     {
+        CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 -= Initialize;
         CommandAPI.RegistryChanged -= OnCommandRegistryChanged;
         Settings.Changed -= OnSettingsChanged;
 
@@ -166,14 +167,11 @@ public class Plugin : BaseUnityPlugin
             }
         };
     }
-    
+
     private void Start()
     {
         Notification.Show($"Loading...", 6f);
-        if (CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 == null)
-            CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 += Initialize;
-        else
-            Initialize();
+        CosmeticsV2Spawner_Dirty.OnPostInstantiateAllPrefabs2 += Initialize;
 
         InitializeDiscordRPC();
     }
